@@ -82,4 +82,20 @@ public class Escalonador {
 		eventos.add(new Evento("CHEGADA", tempoDoEvento, tempoEfetivo));
 	}
 
+	public void agendaTransferencia(int atendimentoMIN, int atendimentoMAX, double tempoGlobal) {
+		// consome um aleatorio do numero limite
+		filaSimples.setAleatorios();
+		// geracao de um numero aleatorio
+		double numero = numerosPseudoAleatorios.getNumero();
+		// geracao de um numero dentro do intervalo
+		double mudancaDeBase = numerosPseudoAleatorios.getMudancaDeBase(numero, atendimentoMIN, atendimentoMAX);
+		// soma dos valores para saber quando ocorrera
+		double tempoDoEvento = mudancaDeBase;
+		// tempo em que o evento ira ocorrer
+		double tempoEfetivo = tempoDoEvento + tempoGlobal;
+		// guarda o valor
+		eventos.add(new Evento("TRANSFERENCIA", tempoDoEvento, tempoEfetivo));
+
+	}
+
 }

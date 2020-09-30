@@ -69,14 +69,6 @@ public class FilaSimples {
 		return aleatorios.getNumAleatorios();
 	}
 
-	public boolean haEspaco() {
-		if (ponteiroDaFila < capacidadeDaFila) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
 	public void setPonteiro(int valor) {
 		ponteiroDaFila = valor;
 
@@ -117,9 +109,25 @@ public class FilaSimples {
 	public int getChegadaMAX() {
 		return intervaloDeChegadaMAX;
 	}
+	
+	public boolean haEspaco() {
+		if (ponteiroDaFila < capacidadeDaFila) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	public boolean podeAgendar() {
 		if (ponteiroDaFila <= numeroDeServidores) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public boolean podeTransferir() {
+		if (ponteiroDaFila >= numeroDeServidores) {
 			return true;
 		} else {
 			return false;
@@ -159,8 +167,6 @@ public class FilaSimples {
 		// variavel para usar como reservatorio para o avanco dos calculos
 		// feito em partes para garantir a ausencia de erros
 		double auxDeCalculo = 0;
-
-		System.out.println("----------------RESULTADO FINAL----------------");
 
 		System.out.println("media de clientes perdidos: " + (clientesPerdidosFinal / media));
 		System.out.println("tempo total, resultado da soma: " + somaDosTempos);
@@ -203,14 +209,6 @@ public class FilaSimples {
 		tempoGlobalAtual = 0;
 		tempoGlobalAnterior = 0;
 
-	}
-
-	public boolean haAlguemEmEspera() {
-		if (ponteiroDaFila >= 1) {
-			return true;
-		} else {
-			return false;
-		}
 	}
 
 }
