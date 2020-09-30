@@ -1,38 +1,41 @@
 package t1SimulacaoMetodosAnaliticosFilasEmTandem;
 
-import t1SimulacaoMetodosAnaliticosFilasEmTandem.Escalonador;
-import t1SimulacaoMetodosAnaliticosFilasEmTandem.Evento;
-import t1SimulacaoMetodosAnaliticosFilasEmTandem.FilaSimples;
-
 public class SimulacaoFilaSimples {
-
-	private FilaSimples filaSimples;
+	private FilaSimples fila1;
 	private Escalonador escalonador;
+	private FilaSimples fila2;
 
-	public SimulacaoFilaSimples(FilaSimples filaSimples) {
-		// recebe a fila simples (modelo de fila com os valores)
-		this.filaSimples = filaSimples;
-		// instancia o escalonador de eventos
-		escalonador = new Escalonador(filaSimples);
+	public SimulacaoFilaSimples(FilaSimples filaSimples1, FilaSimples filaSimples2) {
+		this.fila1 = filaSimples1;
+		this.fila2 = filaSimples2;
+		escalonador = new Escalonador(fila1);
+
 	}
 
 	public void exec() {
-		for (int i = 0; i < filaSimples.getMedia(); i++) {
-			// insere o primeiro cliente na fila
+		// usa como referencia a media apenas a primeira fila
+		// assumimos que a media de execuacao e SEMPRE a mesma em TODAS as filas
+		// adicionas]
+
+		for (int i = 0; i < fila1.getMedia(); i++) {
+			// insere o primeiro cliente em todos os ecalonadores de todas as filas
 			preparaExecucao();
 
-			while (filaSimples.getAleatorios() > 0) {
+			// a quantidade de aleatorios eh um numero independente e que pode ser alcancado
+			// a partir de qualquer fila
+			while (fila1.getAleatorios() >= 0) {
+
 				// pega o proximo evento do escalonador
 				Evento evento = escalonador.getProximoEvento();
 
-				// atualiza o tempo da execucao
-				contabilizaTempoGlobal(evento.getTempoGlobal());
-
 				// certificacao de que valor e valido
 				if (evento != null) {
+					// contailiza o tempo
+					contabilizaTempo(evento);
+
 					// se for uma chegada
 					if (evento.getTipo().contentEquals("CHEGADA")) {
-						lidarComChegadas(evento, 1);
+						lidarComChegadas(evento);
 
 						// se for uma saida
 					} else {
@@ -40,71 +43,77 @@ public class SimulacaoFilaSimples {
 					}
 				}
 			}
-
-			// limpa o resto da fila
-			Evento evento2 = escalonador.getProximoEvento();
-			while (evento2 != null) {
-				// atualiza o tempo da execucao
-				contabilizaTempoGlobal(evento2.getTempoGlobal());
-
-				if (evento2.getTipo().contentEquals("CHEGADA")) {
-					lidarComChegadas(evento2, 0);
-
-					// se for uma saida
-				} else {
-					lidarComSaidas(evento2);
-				}
-				evento2 = escalonador.getProximoEvento();
-			}
-			// printa o resultado da execucao
-			filaSimples.print();
-			// reseta o escalonador
-			escalonador = new Escalonador(filaSimples);
+			resetaFila();
 		}
-		// finalizou a execucao, guarda o resultado
-		filaSimples.resultadoFinal();
 
-	}
+		printResultado();
 
-	private void lidarComSaidas(Evento evento) {
-		// fila--
-		filaSimples.contabilizaTempo(evento.getTempoGlobal(), evento.getTipo());
-		// se fila>=1 agenda saida
-		if (filaSimples.existeAlguemParaSerAtendido()) {
-			escalonador.agendaSaida(filaSimples.getAtendimentoMIN(), filaSimples.getAtendimentoMAX(),
-					filaSimples.getTempo());
-		}
-	}
-
-	private void lidarComChegadas(Evento evento, int i) {
-		// verifica se possui espaco na fila
-		if (filaSimples.possuiEspaco()) {
-			// fila++
-			filaSimples.contabilizaTempo(evento.getTempoGlobal(), evento.getTipo());
-			// verifica se pode agendar uma saida
-			if (filaSimples.podeAgendarSaida()) {
-				escalonador.agendaSaida(filaSimples.getAtendimentoMIN(), filaSimples.getAtendimentoMAX(),
-						filaSimples.getTempo());
-			}
-		} else {
-			// se nao possui espaco, perda
-			filaSimples.contabilizaPerda();
-			//
-			filaSimples.contabilizaTempo(evento.getTempoGlobal(), evento.getTipo());
-		}
-		// sempre agenda chegada
-		if (i == 1) {
-			escalonador.agendaChegada(filaSimples.getChegadaMIN(), filaSimples.getChegadaMAX(), filaSimples.getTempo());
-		}
-	}
-
-	private void contabilizaTempoGlobal(double tempo) {
-		filaSimples.setTempo(tempo);
 	}
 
 	private void preparaExecucao() {
-		// adiciona o primeiro cliente no escalonador
-		escalonador.add(filaSimples.primeiroCliente());
+		escalonador.add(new Evento("CHEGADA", 0, fila1.getPrimeirocliente()));
+
 	}
 
+	private void contabilizaTempo(Evento evento) {
+		// tempo atual - tempo anterior
+		// tempo atual = tempo do evento
+		// tempo anterior = tempo global desatualizado
+
+		// entao:
+		// altera o tempo global anterior para o tempo global atual (quando aconteceu o
+		// ultimo evento)
+		fila1.updateTempoGlobalAnterior();
+
+		// altera o tempo global para tempo global do evento (quando o mesmo ira
+		// acontecer)
+		fila1.updateTempoGlobal(evento.getTempoGlobal());
+
+		// atualiza o tempo no vetor
+		fila1.updateTempoFila();
+
+	}
+
+	private void lidarComChegadas(Evento evento) {
+		// verifica se ha espaco na fila
+		if (fila1.haEspaco()) {
+			// aumenta o ponteiro da fila
+			fila1.setPonteiro(fila1.getPonteiro() + 1);
+
+			// se a fila eh menor ou igual a quantidade de servidores
+			if (fila1.podeAgendar()) {
+				// agenda uma saida
+				escalonador.agendaSaida(fila1.getAtendimentoMIN(), fila1.getAtendimentoMAX(), fila1.getTempoGlobal());
+			}
+
+		} else {
+			fila1.clientePerdido();
+		}
+
+		// sempre agenda uma chegada ao final
+		escalonador.agendaChegada(fila1.getChegadaMIN(), fila1.getChegadaMAX(), fila1.getTempoGlobal());
+	}
+
+	private void lidarComSaidas(Evento evento) {
+		//verifica se eh possivel diminuir a fila
+		if(fila1.getPonteiro()>0) {
+			// diminui a fila
+			fila1.setPonteiro(fila1.getPonteiro() - 1);
+		}
+		
+
+		// se a fila eh menor ou igual a quantidade de servidores
+		if (fila1.haAlguemEmEspera()) {
+			escalonador.agendaSaida(fila1.getAtendimentoMIN(), fila1.getAtendimentoMAX(), fila1.getTempoGlobal());
+		}
+	}
+
+	private void resetaFila() {
+		fila1.resetaFila();
+	}
+
+	private void printResultado() {
+		// print estado final do vetor e clientes perdidos
+		fila1.resultadoFinal();
+	}
 }

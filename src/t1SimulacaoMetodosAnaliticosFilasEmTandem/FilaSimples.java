@@ -1,25 +1,17 @@
 package t1SimulacaoMetodosAnaliticosFilasEmTandem;
 
-import t1SimulacaoMetodosAnaliticosFilasEmTandem.Evento;
-
 public class FilaSimples {
 	// resultado final deve ser obtivo a partir do resoltado de quntas iteracoes
 	private int media;
 
-	// limite de aleatorios/tempo da execucao
-	private int aleatorios;
-
-	// backUp dos numeros aleatorios
-	private int aleatoriosBackUp;
+	// limite de aleatorios
+	private Aleatorios aleatorios;
 
 	// Tempo para primeiro cliente
 	private double primeiroCliente;
 
 	// Número de servidores;
 	private int numeroDeServidores;
-
-	// quantidade de pessoas sendo atendidas
-	private int sendoAtendidos = 0;
 
 	// Capacidade da fila.
 	private int capacidadeDaFila;
@@ -33,7 +25,7 @@ public class FilaSimples {
 	private int intervaloDeChegadaMAX;
 
 	// tempo global atual
-	private double tempoGlobal;
+	private double tempoGlobalAtual;
 
 	// tempo global anterior (ultima iteracao)
 	private double tempoGlobalAnterior;
@@ -53,9 +45,9 @@ public class FilaSimples {
 	// numero de clientes que nao couberam na fila
 	private int clientesPerdidosFinal = 0;
 
-	public FilaSimples(int media, int aleatorios, double primeiroCliente, int numeroDeServidores, int capacidadeDaFila,
-			int intervaloDeAtendimentoMIN, int intervaloDeAtendimentoMAX, int intervaloDeChegadaMIN,
-			int intervaloDeChegadaMAX) {
+	public FilaSimples(int media, Aleatorios aleatorios, double primeiroCliente, int numeroDeServidores,
+			int capacidadeDaFila, int intervaloDeAtendimentoMIN, int intervaloDeAtendimentoMAX,
+			int intervaloDeChegadaMIN, int intervaloDeChegadaMAX) {
 		this.media = media;
 		this.aleatorios = aleatorios;
 		this.primeiroCliente = primeiroCliente;
@@ -67,7 +59,39 @@ public class FilaSimples {
 		this.intervaloDeChegadaMAX = intervaloDeChegadaMAX;
 		this.vetorFila = new double[capacidadeDaFila + 1];
 		this.vetorFinal = new double[capacidadeDaFila + 1];
-		this.aleatoriosBackUp = aleatorios;
+	}
+
+	public int getMedia() {
+		return media;
+	}
+
+	public int getAleatorios() {
+		return aleatorios.getNumAleatorios();
+	}
+
+	public boolean haEspaco() {
+		if (ponteiroDaFila < capacidadeDaFila) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public void setPonteiro(int valor) {
+		ponteiroDaFila = valor;
+
+	}
+
+	public int getPonteiro() {
+		return ponteiroDaFila;
+	}
+
+	public void clientePerdido() {
+		clientesPerdidos++;
+	}
+
+	public int getServidores() {
+		return numeroDeServidores;
 	}
 
 	public int getAtendimentoMIN() {
@@ -78,62 +102,12 @@ public class FilaSimples {
 		return intervaloDeAtendimentoMAX;
 	}
 
-	public double getTempo() {
-		return tempoGlobal;
+	public double getTempoGlobal() {
+		return tempoGlobalAtual;
 	}
 
-	public void setTempo(double tempo) {
-		tempoGlobalAnterior = tempoGlobal;
-		tempoGlobal = tempo;
-	}
-
-	public Evento primeiroCliente() {
-		return new Evento("CHEGADA", primeiroCliente, primeiroCliente);
-	}
-
-	public boolean possuiEspaco() {
-		if (ponteiroDaFila < capacidadeDaFila) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	public void contabilizaTempo(double tempoGlobalAtual, String tipo) {
-		double quantoTempoSePassou = tempoGlobalAtual - tempoGlobalAnterior;
-		if (tipo.contentEquals("CHEGADA")) {
-			vetorFila[ponteiroDaFila] = vetorFila[ponteiroDaFila] + quantoTempoSePassou;
-			if (ponteiroDaFila < vetorFila.length-1) {
-				ponteiroDaFila++;
-			}
-
-		} else {
-			vetorFila[ponteiroDaFila] = vetorFila[ponteiroDaFila] + quantoTempoSePassou;
-			if (ponteiroDaFila > 0) {
-				ponteiroDaFila--;
-			}
-
-		}
-	}
-
-	public boolean podeAgendarSaida() {
-		if (sendoAtendidos < numeroDeServidores && ponteiroDaFila > 0) {
-			sendoAtendidos++;
-			return true;
-		}
-		return false;
-	}
-
-	public void contabilizaPerda() {
-		clientesPerdidos++;
-	}
-
-	public boolean existeAlguemParaSerAtendido() {
-		if (ponteiroDaFila > 0) {
-			return true;
-		} else {
-			return false;
-		}
+	public void setAleatorios() {
+		aleatorios.updateAleatorios();
 	}
 
 	public int getChegadaMIN() {
@@ -144,75 +118,99 @@ public class FilaSimples {
 		return intervaloDeChegadaMAX;
 	}
 
-	public int getAleatorios() {
-		return aleatorios;
-	}
-
-	public void setAleatorios() {
-		this.aleatorios--;
-	}
-
-	public int getMedia() {
-		return media;
-	}
-
-	public void print() {
-		double aux = 0;
-		for (int i = 0; i < vetorFila.length; i++) {
-			aux = aux + vetorFila[i];
+	public boolean podeAgendar() {
+		if (ponteiroDaFila <= numeroDeServidores) {
+			return true;
+		} else {
+			return false;
 		}
-		
-		if (aux != tempoGlobal) {
-			System.out.println("--------------------------");			
-			System.out.println("tempo incorreto");
-			System.out.println("soma dos tempo:" + aux);
-			System.out.println("tempo global: " + tempoGlobal);
-		}
+	}
 
-		// metodo para retornar a fila para o estado original, antes de comecar a nova
-		// iteracao
-		recuperarEstados();
+	public void updateTempoGlobalAnterior() {
+		tempoGlobalAnterior = tempoGlobalAtual;
+
+	}
+
+	public void updateTempoGlobal(double tempoGlobal) {
+		tempoGlobalAtual = tempoGlobal;
+
+	}
+
+	public void updateTempoFila() {
+		// tempo a ser adicionado
+		double tempo = tempoGlobalAtual - tempoGlobalAnterior;
+
+		// adiciona o tempo
+		vetorFila[ponteiroDaFila] = vetorFila[ponteiroDaFila] + tempo;
+
+	}
+
+	public double getPrimeirocliente() {
+		return primeiroCliente;
 	}
 
 	public void resultadoFinal() {
-		double aux;
-		
-		System.out.println("----------------RESULTADO FINAL----------------");
+		// variavel que guarda o tempo total global de todas as execucoes
+		double somaDosTempos = 0;
 		for (int i = 0; i < vetorFinal.length; i++) {
-			aux = vetorFinal[i] / media;
-			double porcentagem = aux/tempoGlobalAnterior;
-			porcentagem = porcentagem*100;
-			System.out.println("tempo " + i + ": " + aux + " | prob: " + porcentagem + "%");
+			somaDosTempos = somaDosTempos + vetorFinal[i];
 		}
-		aux = clientesPerdidosFinal / media;
-		System.out.println("clientes perdidos: " + aux);
+
+		// variavel para usar como reservatorio para o avanco dos calculos
+		// feito em partes para garantir a ausencia de erros
+		double auxDeCalculo = 0;
+
+		System.out.println("----------------RESULTADO FINAL----------------");
+
+		System.out.println("media de clientes perdidos: " + (clientesPerdidosFinal / media));
+		System.out.println("tempo total, resultado da soma: " + somaDosTempos);
+		somaDosTempos = somaDosTempos / media;
+		System.out.println("tempo total dividido pela media: " + somaDosTempos);
+
+		for (int i = 0; i < vetorFinal.length; i++) {
+			auxDeCalculo = vetorFinal[i] / media;
+			// System.out.println("resultado final é: " + vetorFinal[i]);
+			double porcentagem = auxDeCalculo / somaDosTempos;
+			porcentagem = porcentagem * 100;
+			System.out.println("tempo " + i + ": " + auxDeCalculo + " | %= " + porcentagem + "%");
+		}
 
 	}
 
-	private void recuperarEstados() {
+	public void resetaFila() {
+		// guarda a quantidade de clientes perdidos
+		clientesPerdidosFinal = clientesPerdidos;
+		clientesPerdidos = 0;
+
+		// variavel para verificar se nao houve erro
+		double testeDeSeguranca = 0;
+
+		// guarda os estados da fila
 		for (int i = 0; i < vetorFila.length; i++) {
-			// guarda os valores no vetor final
-			vetorFinal[i] = vetorFila[i] + vetorFinal[i];
-			// zero os valores do vetor usado na simulacao
+			vetorFinal[i] = vetorFinal[i] + vetorFila[i];
+			testeDeSeguranca = testeDeSeguranca + vetorFila[i];
 			vetorFila[i] = 0;
 		}
-		// guarda os clientes perdidos na variavel final
-		clientesPerdidosFinal = clientesPerdidosFinal + clientesPerdidos;
-		// zera o valor dos clientes perdidos na variavel usada na simulacao
-		clientesPerdidos = 0;
-		// reseta a quantidade de aleatorios disponiveis
-		aleatorios = aleatoriosBackUp;
-		// reseta a quantidade de pessoas sendo atendidas
-		sendoAtendidos = 0;
-		// reseta o tempo global da iteracao anterior
-		tempoGlobalAnterior = tempoGlobal;
-		// reseta o tempo global
-		tempoGlobal = 0;
-		// reseta o ponteiro da fila
-		ponteiroDaFila = 0;
+
+		// verifica se houve erro
+		if (testeDeSeguranca != tempoGlobalAtual) {
+			System.out.println("TEMPO DIFERENTES");
+			System.out.println("tempo glocal atual: " + tempoGlobalAtual);
+			System.out.println("soma das posicoes da fila: " + testeDeSeguranca);
+			System.out.println("------------------------");
+		}
+
+		tempoGlobalAtual = 0;
+		tempoGlobalAnterior = 0;
+
 	}
 
-	public int getPonteiro() {
-		return ponteiroDaFila;
+	public boolean haAlguemEmEspera() {
+		if (ponteiroDaFila >= 1) {
+			return true;
+		} else {
+			return false;
+		}
 	}
+
 }

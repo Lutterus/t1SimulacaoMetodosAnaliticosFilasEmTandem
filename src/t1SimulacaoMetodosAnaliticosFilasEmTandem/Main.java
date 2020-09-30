@@ -1,57 +1,67 @@
 package t1SimulacaoMetodosAnaliticosFilasEmTandem;
 
+import java.util.ArrayList;
+
 public class Main {
 	public static void main(String[] args) {
 		// G/G/ servidores / capacidade da fila
-		System.out.println("Fila proposta: G/G/1/5, chegadas entre 2..4, atendimento entre 3..5");
+		System.out.println("Fila 1: G/G/2/3, chegadas entre 2..3, atendimento entre 2..5");
 
 		// media deve ser obtida a partir de quantas execucoes (default=1)
 		int media = 5;
 
 		// tempo total de simulacao - usei como tempo total o numero de aleatorios que
 		// devem ser gerados
-		int aleatorios = 1000;
+		int totalAleatorios = 100000;
+		// int totalAleatorios = 7;
+
+		Aleatorios aleatorios = new Aleatorios(totalAleatorios);
 
 		// tempo para primeiro cliente
-		double tempoPrimeirocliente = (3.0);
+		double tempoPrimeirocliente = 2.5;
 
 		// numero de servidores
-		int numeroDeServidores = 1;
+		int numeroDeServidores = 2;
 
 		// capacidade da fila
-		int capacidadeDaFila = 5;
-
-		// Intervalo de tempo de atendimento de um cliente na fila;
-		int intervaloDeAtendimentoMIN = 3;
-		int intervaloDeAtendimentoMAX = 5;
+		int capacidadeDaFila = 3;
 
 		// Intervalo de tempo para a chegada de clientes na fila;
 		int intervaloDeChegadaMIN = 2;
-		int intervaloDeChegadaMAX = 4;
+		int intervaloDeChegadaMAX = 3;
+
+		// Intervalo de tempo de atendimento de um cliente na fila;
+		int intervaloDeAtendimentoMIN = 2;
+		int intervaloDeAtendimentoMAX = 5;
 
 		// implementação de filas simples
-		FilaSimples filaSimples = new FilaSimples(media, aleatorios, tempoPrimeirocliente, numeroDeServidores,
+		FilaSimples filaSimples1 = new FilaSimples(media, aleatorios, tempoPrimeirocliente, numeroDeServidores,
 				capacidadeDaFila, intervaloDeAtendimentoMIN, intervaloDeAtendimentoMAX, intervaloDeChegadaMIN,
 				intervaloDeChegadaMAX);
 
-		// executa com as variaveis inseridas e printa o resultado
-		SimulacaoFilaSimples simulacao = new SimulacaoFilaSimples(filaSimples);
-		simulacao.exec();
-
 		// ------------------------------------------------------------------------
 
-		System.out.println("/////////////////////////////////////////////////");
-		System.out.println("Fila proposta: G/G/2/5, chegadas entre 2..4, atendimento entre 3..5");
+		System.out.println("-------------------");
+		System.out.println("Fila 2: G/G/1/3, atendimento entre 3..5");
 
 		// numero de servidores
-		numeroDeServidores = 2;
+		numeroDeServidores = 1;
+
+		// Intervalo de tempo de atendimento de um cliente na fila;
+		intervaloDeAtendimentoMIN = 3;
+		intervaloDeAtendimentoMAX = 5;
 
 		// implementação de filas simples
-		filaSimples = new FilaSimples(media, aleatorios, tempoPrimeirocliente, numeroDeServidores, capacidadeDaFila,
-				intervaloDeAtendimentoMIN, intervaloDeAtendimentoMAX, intervaloDeChegadaMIN, intervaloDeChegadaMAX);
+		FilaSimples filaSimples2 = new FilaSimples(media, aleatorios, tempoPrimeirocliente, numeroDeServidores,
+				capacidadeDaFila, intervaloDeAtendimentoMIN, intervaloDeAtendimentoMAX, intervaloDeChegadaMIN,
+				intervaloDeChegadaMAX);
+
+		System.out.println("-------------------");
+		System.out.println("INICIO DA EXECUCAO: ");
+		System.out.println("////////////////////////////////////////////");
 
 		// executa com as variaveis inseridas e printa o resultado
-		simulacao = new SimulacaoFilaSimples(filaSimples);
+		SimulacaoFilaSimples simulacao = new SimulacaoFilaSimples(filaSimples1, filaSimples2);
 		simulacao.exec();
 
 	}
